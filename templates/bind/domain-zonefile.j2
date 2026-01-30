@@ -1,0 +1,37 @@
+$TTL    3600
+@       IN      SOA     {{ base_domain }}. hostmaster.{{ base_domain }}. (
+                                {{ zone_serial }} ; Serial Number
+                                28800      ; Refresh
+                                14400      ; Retry
+                                3600000    ; Exire
+                                86400      ; Minimum
+                        )
+                        IN      NS      {{ service_node }}.{{ base_domain }}.
+
+; Service Nodes
+{% set service_node_fqdn = service_node + "." + base_domain -%}
+{%- set kvm_node_fqdn = kvm_node + "." + base_domain -%}
+{{ service_node }}     IN    A    {{ hostvars[service_node_fqdn].ansible_host }}
+{{ kvm_node }}       IN    A    {{ hostvars[kvm_node_fqdn].ansible_host }}
+
+; OKD Nodes
+{% for host in groups['okd4_bootstrap'] + groups['okd4_master'] + groups['okd4_worker'] %}
+{{ host.split('.')[0] }}.{{ cluster_name }}    IN    A    {{ hostvars[host].ansible_host }}
+{% endfor %}
+
+; OKD API
+api.{{ cluster_name }}       IN    CNAME   {{ service_node }}.{{ base_domain }}.
+api-int.{{ cluster_name }}   IN    CNAME   {{ service_node }}.{{ base_domain }}.
+*.apps.{{ cluster_name }}    IN    CNAME   {{ service_node }}.{{ base_domain }}.
+console-openshift-console.apps.{{ cluster_name }}     IN     CNAME  {{ service_node }}.{{ base_domain }}.
+oauth-openshift.apps.{{ cluster_name }}               IN     CNAME  {{ service_node }}.{{ base_domain }}.
+
+; OpenShift internal cluster IPs - SRV records
+{%- set ns = namespace(count = 0) -%}
+{% for host in groups['okd4_master'] %}
+
+etcd-{{ ns.count }}.{{ cluster_name }}     IN    A     {{ hostvars[host].ansible_host }}
+_etcd-server-ssl._tcp.{{ cluster_name }}  86400   IN    SRV   0   10   2380   etcd-{{ ns.count }}.{{ cluster_name }}
+
+{%- set ns.count = ns.count + 1 -%}
+{% endfor -%}

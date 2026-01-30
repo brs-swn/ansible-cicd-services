@@ -1,0 +1,23 @@
+- name: Firewall Rule for dhcpd
+  ansible.posix.firewalld:
+    service: dhcp
+    state: enabled
+    permanent: true
+    immediate: true
+    offline: true
+
+- name: Copy dhcpd configuration file
+  ansible.builtin.template:
+    src: templates/dhcp/dhcpd.conf.j2
+    dest: "/etc/dhcp/dhcpd.conf"
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - dhcpd
+
+- name: Enable dhcpd
+  systemd_service:
+    name: dhcpd
+    state: started
+    enabled: true

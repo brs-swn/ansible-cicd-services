@@ -1,0 +1,27 @@
+# Primary DNS for this network
+authoritative;
+
+# Do not try to update DNS by default
+ddns-update-style none;
+
+# The subnets
+subnet {{ ip_subnet }} netmask {{ ip_netmask }} {
+  option routers		{{ ip_gateway }};
+  option subnet-mask		{{ ip_netmask }};
+  option broadcast-address	{{ ip_broadcast }};
+  option domain-name		"{{ base_domain }}";
+  option domain-name-servers	{{ hostvars[inventory_hostname]['ansible_host'] }}, {{ dns_forwarders|join(', ') }};
+
+  range {{ dhcp_range }};
+  default-lease-time 21600;
+  max-lease-time 43200;
+}
+
+{% for host in groups['all'] %}
+{% if hostvars[host]['mac'] is defined %}
+host {{ host }} {
+ hardware ethernet {{ hostvars[host]['mac'] }};
+ fixed-address {{ hostvars[host].ansible_host }};
+} 
+{% endif %}
+{% endfor %}

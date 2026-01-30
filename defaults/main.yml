@@ -1,0 +1,27 @@
+#SPDX-License-Identifier: GPL-2.0-or-later
+---
+# Defaults file for okd-servicesi
+# Override these in the global group_vars or vars/mainl.yml
+
+# Service RPMS
+dnf_packages:
+  - dhcp-server
+  - bind
+  - httpd
+  - haproxy
+
+# Shared Variables
+base_domain: your.tld
+cluster_name: okd4
+service_node: services
+kvm_node: kvm
+
+# Network Variables
+ip_subnet: 192.168.1.0
+ip_gateway: 192.168.1.1
+ip_broadcast: 192.168.1.255
+ip_netmask: 255.255.255.0
+dhcp_range: "192.168.1.128 192.168.1.143"
+dns_forwarders:
+  - 1.1.1.1
+  - 1.0.0.1

@@ -1,0 +1,32 @@
+- name: Set haproxy_connect_any
+  ansible.posix.seboolean:
+    name: haproxy_connect_any
+    state: true
+    persistent: true
+  when: ansible_facts.selinux.status == 'enabled'
+
+- name: Firewall Rich Rules for HA Proxy
+  ansible.posix.firewalld:
+    rich_rule: rule family="ipv4" source address="{{ item.subnet }}" port port="{{ item.port }}" protocol="tcp" accept
+    permanent: true
+    immediate: true
+    state: enabled
+  with_items:
+     - { subnet: '{{ ip_subnet }}/24', port: '6443' }
+     - { subnet: '{{ ip_subnet }}/24', port: '22623' }
+
+- name: Copy HAProxy Configuration
+  ansible.builtin.template:
+    src: templates/haproxy/haproxy.cfg.j2
+    dest: "/etc/haproxy/haproxy.cfg"
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - haproxy
+
+- name: Enable haproxy
+  systemd_service:
+    name: haproxy
+    state: started
+    enabled: true

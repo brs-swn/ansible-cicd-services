@@ -1,0 +1,56 @@
+- name: Set FQDN for KVM Host
+  set_fact:
+    kvm_fqdn: "{{ kvm_node }}.{{ base_domain }}"
+
+- name: Firewall Rule for HTTPD
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    state: enabled
+    permanent: true
+    immediate: true
+    offline: true
+  with_items:
+    - http
+    - https
+
+- name: Create HTTPD Paths
+  ansible.builtin.file:
+    path: '{{ item.path }}'
+    owner: apache
+    group: apache
+    mode: '0755'
+    recurse: true
+  loop:
+    - { path: /var/www/html/okd4 }
+    - { path: /var/www/html/ks }
+
+- name: Copy httpd configuration file
+  copy:
+    src: "files/httpd/{{ item.httpd_file }}"
+    dest: "{{ item.httpd_path }}"
+    mode: 0755
+    owner: apache
+    group: apache
+  with_items:
+    - { httpd_file: "index.html", httpd_path: "/var/www/html/" }
+    - { httpd_file: "Scott-Amo.jpg", httpd_path: "/var/www/html/" }
+  notify:
+    - httpd
+
+- name: Copy KVM Kickstart File
+  ansible.builtin.template:
+    src: templates/httpd/{{ item.httpd_file }}
+    dest: "{{ item.httpd_path }}/{{ item.httpd_file[:-3] }}"
+    mode: 0755
+    owner: apache
+    group: apache
+  with_items:
+    - { httpd_file: "kvm-ks.cfg.j2", httpd_path: "/var/www/html/ks/" }
+  notify:
+    - httpd
+
+- name: Enable httpd
+  systemd_service:
+    name: httpd
+    state: started
+    enabled: true

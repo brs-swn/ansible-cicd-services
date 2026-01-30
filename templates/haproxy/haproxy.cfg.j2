@@ -1,0 +1,61 @@
+global
+    log         127.0.0.1 local2 info
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     20000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          300s
+    timeout server          300s
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 20000
+
+listen stats
+    bind :9000
+    mode http
+    stats enable
+    stats uri /
+
+frontend ocp4_k8s_api_fe
+    bind :6443
+    default_backend ocp4_k8s_api_be
+    mode tcp
+    option tcplog
+
+backend ocp4_k8s_api_be
+    balance roundrobin
+    mode tcp
+{% for host in groups['okd4_bootstrap'] + groups['okd4_master'] %}
+    server      {{ host.split('.')[0] }} {{ hostvars[host].ansible_host }}:6443 check
+{% endfor %}
+
+frontend ocp4_machine_config_server_fe
+    bind :22623
+    default_backend ocp4_machine_config_server_be
+    mode tcp
+    option tcplog
+
+backend ocp4_machine_config_server_be
+    balance roundrobin
+    mode tcp
+{% for host in groups['okd4_bootstrap'] + groups['okd4_master'] %}
+    server      {{ host.split('.')[0] }} {{ hostvars[host].ansible_host }}:22623 check
+{% endfor %}

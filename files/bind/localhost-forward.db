@@ -1,0 +1,10 @@
+$TTL	3h
+localhost.  SOA  localhost. nobody.localhost.  (
+					42		; serial (d. adams)
+					1d		; refresh
+					12h		; retry
+					1w		; expiry
+					3h )		; minimum
+
+			NS	localhost.
+			A	127.0.0.1

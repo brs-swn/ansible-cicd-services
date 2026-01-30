@@ -1,0 +1,12 @@
+---
+- name: Set haproxy_connect_any
+  ansible.posix.selinux:
+    policy: targeted
+    state: permissive
+    update_kernel_param: true
+
+- include_tasks: server-install-packages.yml
+- include_tasks: service-configure-dhcpd.yml
+- include_tasks: service-configure-bind.yml
+- include_tasks: service-configure-httpd.yml
+- include_tasks: service-configure-haproxy.yml

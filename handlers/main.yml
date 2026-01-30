@@ -1,0 +1,15 @@
+#SPDX-License-Identifier: GPL-2.0-or-later
+---
+# Handlers file for okd-services
+- name: named
+  service: name=named state=restarted
+
+- name: dhcpd
+  service: name=dhcpd state=restarted
+
+- name: httpd
+  service: name=httpd state=restarted
+
+- name: haproxy
+  service: name=haproxy state=restarted
+

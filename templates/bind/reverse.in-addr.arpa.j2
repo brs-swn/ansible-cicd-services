@@ -1,0 +1,23 @@
+$TTL    3600
+@       IN      SOA     {{ ip_subnet.split('.')[1] }}.{{ ip_subnet.split('.')[0] }}.in-addr.arpa. hostmaster.{{ base_domain }}. (
+                                {{ zone_serial }} ; Serial
+                                28800      ; Refresh
+                                14400      ; Retry
+                                3600000    ; Expire
+                                86400      ; Minimum
+                        )
+                        IN      NS      {{ service_node }}.{{ base_domain }}.
+
+; Service Nodes
+{% set service_node_fqdn = service_node + "." + base_domain -%}
+{%- set kvm_node_fqdn = kvm_node + "." + base_domain -%}
+{%- for host in service_node_fqdn, kvm_node_fqdn -%}
+{%- set host_ip = hostvars[host].ansible_host -%} 
+{{ host_ip.split('.')[3] }}.{{ host_ip.split('.')[2] }}        IN  PTR    {{ host }}.
+{% endfor %}
+
+; OKD Nodes
+{% for host in groups['okd4_bootstrap'] + groups['okd4_master'] + groups['okd4_worker'] %}
+{%- set host_ip = hostvars[host].ansible_host -%} 
+{{ host_ip.split('.')[3] }}.{{ host_ip.split('.')[2] }}       IN  PTR    {{ host }}.
+{% endfor %}

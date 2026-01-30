@@ -1,0 +1,59 @@
+- name: Set Serial Number
+  set_fact:
+    zone_serial: "{{ ansible_date_time.epoch }}"
+
+- name: Set IP Octet List
+  set_fact:
+    ip_subnet_octets: "{{ ip_subnet.split('.') }}"
+
+- name: Firewall Rule for Bind
+  ansible.posix.firewalld:
+    service: dns
+    state: enabled
+    permanent: true
+    immediate: true
+    offline: true
+
+- name: Create Bind Paths
+  file:
+    path: "{{ item.path }}"
+    state: "{{ item.state }}"
+    group: 'named'
+    owner: 'named'
+  with_items:
+    - { path: "/var/named", state: "directory" }
+    - { path: "/var/log/bind", state: "directory" }
+    - { path: "/var/log/bind/bind.log", state: "touch" }
+    - { path: "/var/log/bind/dns.log", state: "touch" }
+    - { path: "/var/log/bind/bind_debug.log", state: "touch" }
+
+- name: Copy bind Configs from Local Repo
+  copy: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.u }}"
+    group: "{{ item.g }}"
+    mode: "{{ item.m }}"
+  with_items:
+    - { src: "files/bind/named.local", dest: "/var/named/", u: "named", g: "named", m: "0644" }
+    - { src: "files/bind/localhost-forward.db", dest: "/var/named/", u: "named", g: "named", m: "0644" }
+
+- name: Bind Template Configs
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.u }}"
+    group: "{{ item.g }}"
+    mode: "{{ item.m }}"
+  with_items:
+    - { src: "templates/bind/reverse.in-addr.arpa.j2", dest: "/var/named/{{ ip_subnet_octets[1] }}.{{ ip_subnet_octets[0] }}.in-addr.arpa", u: "named", g: "named", m: "0644" }
+    - { src: "templates/bind/domain-zonefile.j2", dest: "/var/named/{{ base_domain }}", u: "named", g: "named", m: "0644" }
+    - { src: "templates/bind/named.conf.j2", dest: "/etc/named.conf", u: "named", g: "named", m: "0644" }
+  notify: 
+    - named
+
+- name: Enable Bind
+  systemd_service:
+    name: named
+    state: started
+    enabled: true
