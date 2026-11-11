@@ -14,6 +14,11 @@ $TTL    3600
 {{ service_node }}     IN    A    {{ hostvars[service_node_fqdn].ansible_host }}
 {{ kvm_node }}       IN    A    {{ hostvars[kvm_node_fqdn].ansible_host }}
 
+; CICD Nodes
+{% for host in groups['cicd_db'] + groups['cicd_scm'] + groups['cicd_agile'] + groups['cicd_artifact'] + groups['cicd_build'] %}
+{{ host.split('.')[0] }}.{{ kvm_node }}    IN    A    {{ hostvars[host].ansible_host }}
+{% endfor %}
+
 ; OKD Nodes
 {% for host in groups['okd4_bootstrap'] + groups['okd4_master'] + groups['okd4_worker'] %}
 {{ host.split('.')[0] }}.{{ cluster_name }}    IN    A    {{ hostvars[host].ansible_host }}

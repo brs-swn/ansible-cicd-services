@@ -16,6 +16,12 @@ $TTL    3600
 {{ host_ip.split('.')[3] }}.{{ host_ip.split('.')[2] }}        IN  PTR    {{ host }}.
 {% endfor %}
 
+; CICD Nodes
+{% for host in groups['cicd_db'] + groups['cicd_scm'] + groups['cicd_agile'] + groups['cicd_artifact'] + groups['cicd_build'] %}
+{%- set host_ip = hostvars[host].ansible_host -%} 
+{{ host_ip.split('.')[3] }}.{{ host_ip.split('.')[2] }}       IN  PTR    {{ host }}.
+{% endfor %}
+
 ; OKD Nodes
 {% for host in groups['okd4_bootstrap'] + groups['okd4_master'] + groups['okd4_worker'] %}
 {%- set host_ip = hostvars[host].ansible_host -%} 

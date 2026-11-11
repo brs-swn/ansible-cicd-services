@@ -49,6 +49,19 @@
   notify:
     - httpd
 
+- name: Copy other Kickstart Files
+  copy:
+    src: "files/httpd/ks/{{ item.ks_file }}"
+    dest: "{{ item.ks_path }}"
+    mode: 0755
+    owner: apache
+    group: apache
+  with_items:
+    - { ks_file: "fc-server-ks-basic.cfg", ks_path: "/var/www/html/ks/" }
+    - { ks_file: "rhel-ks-basic.cfg", ks_path: "/var/www/html/ks/" }
+  notify:
+    - httpd
+
 - name: Enable httpd
   systemd_service:
     name: httpd
