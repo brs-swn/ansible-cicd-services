@@ -1,6 +1,6 @@
 #SPDX-License-Identifier: GPL-2.0-or-later
 ---
-# Defaults file for okd-servicesi
+# Defaults file for cicd-servicesi
 # Override these in the global group_vars or vars/mainl.yml
 
 # Service RPMS

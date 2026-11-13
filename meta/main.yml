@@ -1,7 +1,7 @@
 #SPDX-License-Identifier: GPL-2.0-or-later
 galaxy_info:
   author: Brent R. Scott
-  description: OKD4 on KVM
+  description: CICD Tool Services
   company: ScottWorks
 
   # If the issue tracker for your role is not on github, uncomment the
@@ -29,8 +29,6 @@ galaxy_info:
   galaxy_tags:
     - httpd
     - haproxy
-    - okd4
-    - openshift
     - bind
     - dhcpd
 

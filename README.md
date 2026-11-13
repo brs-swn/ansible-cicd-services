@@ -1,9 +1,9 @@
-OKD Services
+CICD Services
 =========
 
 This configures the following services required for deploying and operating
-OKD4 (or OpenShift) and is tailored to a Libvirt/KVM deployment. The services
-that are configured with this role are:
+CICD Tools. These tools are tailored to a Libvirt/KVM deployment running 
+Fedora. The services that are configured with this role are:
 
 * Apache HTTPD
 * ISC DHCP
@@ -41,11 +41,11 @@ Example Playbook
 ----------------
 The play book should be defined as follows:
 
-    - hosts: okd_services
+    - hosts: cicd_services
       become: yes
       become_user: root
       roles:
-        - ansible-okd-services
+        - ansible-cicd-services
 
 To execute the playbook use the following syntax:
 
